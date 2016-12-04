@@ -19,6 +19,7 @@
 var express = require('express'); // app server
 var bodyParser = require('body-parser'); // parser for post requests
 var Conversation = require('watson-developer-cloud/conversation/v1'); // watson sdk
+var Cloudant = require('cloudant'); // db access
 
 var app = express();
 
@@ -39,6 +40,7 @@ var conversation = new Conversation({
 
 // Endpoint to be call from the client side
 app.post('/api/message', function(req, res) {
+  var chat_state = 'watson';
   var cloudant_login = process.env.CLOUDANT_LOGIN;
   var cloudant_password = process.env.CLOUDANT_PASSWORD;
   if (!cloudant_login || !cloudant_password) {
@@ -48,27 +50,37 @@ app.post('/api/message', function(req, res) {
       }
     });
   }
-  var workspace = process.env.WORKSPACE_ID || '<workspace-id>';
-  if (!workspace || workspace === '<workspace-id>') {
-    return res.json({
-      'output': {
-        'text': 'The app has not been configured with a <b>WORKSPACE_ID</b> environment variable. Please refer to the ' + '<a href="https://github.com/watson-developer-cloud/conversation-simple">README</a> documentation on how to set this variable. <br>' + 'Once a workspace has been defined the intents may be imported from ' + '<a href="https://github.com/watson-developer-cloud/conversation-simple/blob/master/training/car_workspace.json">here</a> in order to get a working application.'
+
+  // Retrieve state from db
+  var cloudant = Cloudant({account: cloudant_login, password: cloudant_password});
+  var chat_state_db = cloudant.db.use('chat_state');
+  chat_state_db.get('bfc9d1a8d37ea7f32270ac94a7cd8fc1', function(err, body) {
+    chat_state = body.chat_state;
+  })
+
+  if (chat_state == 'watson') {
+    var workspace = process.env.WORKSPACE_ID || '<workspace-id>';
+    if (!workspace || workspace === '<workspace-id>') {
+      return res.json({
+        'output': {
+          'text': 'The app has not been configured with a <b>WORKSPACE_ID</b> environment variable. Please refer to the ' + '<a href="https://github.com/watson-developer-cloud/conversation-simple">README</a> documentation on how to set this variable. <br>' + 'Once a workspace has been defined the intents may be imported from ' + '<a href="https://github.com/watson-developer-cloud/conversation-simple/blob/master/training/car_workspace.json">here</a> in order to get a working application.'
+        }
+      });
+    }
+    var payload = {
+      workspace_id: workspace,
+      context: req.body.context || {},
+      input: req.body.input || {}
+    };
+
+    // Send the input to the conversation service
+    conversation.message(payload, function(err, data) {
+      if (err) {
+        return res.status(err.code || 500).json(err);
       }
+      return res.json(updateMessage(payload, data));
     });
   }
-  var payload = {
-    workspace_id: workspace,
-    context: req.body.context || {},
-    input: req.body.input || {}
-  };
-
-  // Send the input to the conversation service
-  conversation.message(payload, function(err, data) {
-    if (err) {
-      return res.status(err.code || 500).json(err);
-    }
-    return res.json(updateMessage(payload, data));
-  });
 });
 
 /**
