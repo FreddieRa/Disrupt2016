@@ -81,12 +81,11 @@ app.post('/api/message', function(req, res) {
       return res.json(updateMessage(payload, data));
     });
   }
-  else if (chat_state == 'user')
-      pubnub.subscribe({
-    channels: ['my_channel'],
-    withPresence: true // also subscribe to presence instances.
-})
-
+  else if (chat_state == 'user') {
+    pubnub.subscribe({
+      channels: ['my_channel'],
+      withPresence: true // also subscribe to presence instances.
+    })
 
     pubnub.addListener({
         status: function(statusEvent) {
@@ -101,6 +100,7 @@ app.post('/api/message', function(req, res) {
             // handle presence
         }
     })      
+  }
 });
 
 /**
