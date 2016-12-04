@@ -214,7 +214,11 @@ var ConversationPanel = (function() {
       // Retrieve the context from the previous server response
       var context;
       var latestResponse = Api.getResponsePayload();
-      if (latestResponse) {
+      console.log(latestResponse);
+      if (latestResponse == 'TOGGLESTATE') {
+          chat_state = 'user'
+      }
+      else if (latestResponse) {
         context = latestResponse.context;
       }
 

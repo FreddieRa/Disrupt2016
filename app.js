@@ -74,14 +74,15 @@ app.post('/api/message', function(req, res) {
     };
 
     // Send the input to the conversation service
-    conversation.message(payload, function(err, data) {
+    conversation.message(payload, function(err, data)) {
       if (err) {
         return res.status(err.code || 500).json(err);
       }
       if (payload.context.state_array && payload.context.state_array.indexOf('END') > -1) {
         // Update chat state
-        chat_state_db.insert({_id: 'bfc9d1a8d37ea7f32270ac94a7cd8fc1', chat_state: 'chat'});
+        chat_state_db.insert({_id: 'bfc9d1a8d37ea7f32270ac94a7cd8fc1', chat_state: 'user'});
       }
+      res['chat_state'] = chat_state;
       return res.json(updateMessage(payload, data));
     });
   }
@@ -136,7 +137,8 @@ function updateMessage(input, response) {
     }
   }
   if (response.output.text == 'TOGGLESTATE') {
-      chat_state = 'user' }
+      chat_state = 'user';
+      }
   else {
       response.output.text = responseText;
       return response;
