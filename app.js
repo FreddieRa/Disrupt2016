@@ -81,6 +81,26 @@ app.post('/api/message', function(req, res) {
       return res.json(updateMessage(payload, data));
     });
   }
+  else if (chat_state == 'user')
+      pubnub.subscribe({
+    channels: ['my_channel'],
+    withPresence: true // also subscribe to presence instances.
+})
+
+
+    pubnub.addListener({
+        status: function(statusEvent) {
+            if (statusEvent.category === "PNConnectedCategory") {
+                publishSampleMessage();
+            }
+        },
+        message: function(message) {
+            console.log("New Message!!", message);
+        },
+        presence: function(presenceEvent) {
+            // handle presence
+        }
+    })      
 });
 
 /**
@@ -111,8 +131,11 @@ function updateMessage(input, response) {
       responseText = 'I did not understand your intent';
     }
   }
-  response.output.text = responseText;
-  return response;
+  if (response.output.text == 'TOGGLESTATE') {
+      chat_state = 'user' }
+  else {
+      response.output.text = responseText;
+      return response;
+  }
 }
-
 module.exports = app;

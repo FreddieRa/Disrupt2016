@@ -217,9 +217,17 @@ var ConversationPanel = (function() {
         context = latestResponse.context;
       }
 
-      // Send the user message
-      Api.sendRequest(inputBox.value, context);
-
+      // Send the user message to Watson
+      if (chat_state == 'watson') {
+        Api.sendRequest(inputBox.value, context);
+      }
+        
+      // Send the user message to user
+      if (chat_state == 'user') {
+        pubnub.publish({channel: 'my_channel', message: inputBox.value}, function(status, response) {
+            console.log(status, response);
+      }
+                       }
       // Clear input box for further messages
       inputBox.value = '';
       Common.fireEvent(inputBox, 'input');
