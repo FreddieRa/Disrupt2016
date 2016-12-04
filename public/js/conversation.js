@@ -3,6 +3,11 @@
 /* eslint no-unused-vars: "off" */
 /* global Api: true, Common: true*/
 
+pubnub = new PubNub({
+        publishKey : 'pub-c-eb9de64e-eb5b-47f0-9d14-ebf34028f9a5',
+        subscribeKey : 'sub-c-1e49b0dc-b9d2-11e6-963b-0619f8945a4f'
+    })
+
 var ConversationPanel = (function() {
   var settings = {
     selectors: {
@@ -225,6 +230,9 @@ var ConversationPanel = (function() {
       // Send the user message to Watson
       if (chat_state == 'watson') {
         Api.sendRequest(inputBox.value, context);
+        pubnub.publish({channel: 'my_channel', message: inputBox.value}, function(status, response) {
+            console.log(status, response);
+        })
       }
         
       // Send the user message to user

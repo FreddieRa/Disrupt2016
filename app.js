@@ -74,7 +74,7 @@ app.post('/api/message', function(req, res) {
     };
 
     // Send the input to the conversation service
-    conversation.message(payload, function(err, data)) {
+    conversation.message(payload, function(err, data) {
       if (err) {
         return res.status(err.code || 500).json(err);
       }
