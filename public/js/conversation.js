@@ -8,6 +8,14 @@ pubnub = new PubNub({
         subscribeKey : 'sub-c-1e49b0dc-b9d2-11e6-963b-0619f8945a4f'
     })
 
+pubnub.subscribe({
+    channels: ['my_channel'],
+    withPresence: true // also subscribe to presence instances.
+})
+
+ 
+
+
 var ConversationPanel = (function() {
   var settings = {
     selectors: {
@@ -22,11 +30,7 @@ var ConversationPanel = (function() {
     }
   };
 
-  // Publicly accessible methods defined
-  return {
-    init: init,
-    inputKeyDown: inputKeyDown
-  };
+
 
   // Initialize the module
   function init() {
@@ -210,6 +214,20 @@ var ConversationPanel = (function() {
       scrollingChat.scrollTop = scrollEl.offsetTop;
     }
   }
+    
+    pubnub.addListener({
+        status: function(statusEvent) {
+
+            
+        },
+        message: function(message) {
+            console.log("New Message!!", message);
+            displayMessage(message, settings.authorTypes.watson);
+        },
+        presence: function(presenceEvent) {
+            // handle presence
+        }
+    })     
 
   // Handles the submission of input
   function inputKeyDown(event, inputBox) {
@@ -230,7 +248,7 @@ var ConversationPanel = (function() {
       // Send the user message to Watson
       if (chat_state == 'watson') {
         Api.sendRequest(inputBox.value, context);
-        pubnub.publish({channel: 'my_channel', message: inputBox.value}, function(status, response) {
+        pubnub.publish({channel: 'my_channel2', message: inputBox.value}, function(status, response) {
             console.log(status, response);
         })
       }
@@ -246,4 +264,10 @@ var ConversationPanel = (function() {
       Common.fireEvent(inputBox, 'input');
     }
   }
+
+      // Publicly accessible methods defined
+  return {
+    init: init,
+    inputKeyDown: inputKeyDown
+  };
 }());
