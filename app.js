@@ -78,6 +78,10 @@ app.post('/api/message', function(req, res) {
       if (err) {
         return res.status(err.code || 500).json(err);
       }
+      if (payload.context.state_array && payload.context.state_array.indexOf('END') > -1) {
+        // Update chat state
+        chat_state_db.insert({_id: 'bfc9d1a8d37ea7f32270ac94a7cd8fc1', chat_state: 'chat'});
+      }
       return res.json(updateMessage(payload, data));
     });
   }
